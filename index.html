@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="广州港数据采集监控系统 - 实时监控、数字孪生、碳排管理、应急指挥">
+    <title>广州港数据采集监控系统</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 样式表 -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">⚓</span>
+                <span class="logo-text">广州港数据采集监控系统</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-module="realtime">
+                    <span class="nav-icon">📊</span>
+                    <span>实时监控</span>
+                </li>
+                <li class="nav-item" data-module="digital-twin">
+                    <span class="nav-icon">🏗️</span>
+                    <span>数字孪生</span>
+                </li>
+                <li class="nav-item" data-module="carbon">
+                    <span class="nav-icon">🌱</span>
+                    <span>碳排管理</span>
+                </li>
+                <li class="nav-item" data-module="emergency">
+                    <span class="nav-icon">🚨</span>
+                    <span>应急指挥</span>
+                </li>
+            </ul>
+            <div class="nav-status">
+                <span class="status-indicator"></span>
+                <span class="status-text">系统运行正常</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <main class="main-container">
+        <!-- 实时监控模块 -->
+        <section id="realtime-module" class="module active">
+            <div class="module-header">
+                <h1>实时运营监控</h1>
+                <div class="time-filter">
+                    <button class="filter-btn active" data-range="1h">1小时</button>
+                    <button class="filter-btn" data-range="6h">6小时</button>
+                    <button class="filter-btn" data-range="24h">24小时</button>
+                    <button class="filter-btn" data-range="7d">7天</button>
+                </div>
+            </div>
+
+            <!-- KPI关键指标 -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🚢</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">在港船舶</div>
+                        <div class="kpi-value" id="ships-count">0</div>
+                        <div class="kpi-change positive">↑ 12%</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📦</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">今日吞吐量</div>
+                        <div class="kpi-value" id="throughput-value">0</div>
+                        <div class="kpi-unit">TEU</div>
+                        <div class="kpi-change positive">↑ 8%</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">⚙️</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">设备在线率</div>
+                        <div class="kpi-value" id="equipment-online">0</div>
+                        <div class="kpi-unit">%</div>
+                        <div class="kpi-change positive">↑ 2%</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">⚡</div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">作业效率</div>
+                        <div class="kpi-value" id="efficiency-value">0</div>
+                        <div class="kpi-unit">箱/小时</div>
+                        <div class="kpi-change negative">↓ 3%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>实时吞吐量趋势</h3>
+                    <canvas id="throughput-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>设备运行状态</h3>
+                    <canvas id="equipment-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- 船舶动态表格 -->
+            <div class="data-table-card">
+                <h3>在港船舶动态</h3>
+                <table class="data-table" id="ships-table">
+                    <thead>
+                        <tr>
+                            <th>船名</th>
+                            <th>船型</th>
+                            <th>泊位</th>
+                            <th>状态</th>
+                            <th>到港时间</th>
+                            <th>预计离港</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ships-table-body">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 数字孪生模块 -->
+        <section id="digital-twin-module" class="module">
+            <div class="module-header">
+                <h1>数字孪生可视化</h1>
+                <div class="twin-controls">
+                    <button class="control-btn" id="reset-camera">重置视角</button>
+                    <button class="control-btn" id="toggle-animation">动画开/关</button>
+                </div>
+            </div>
+
+            <div class="twin-container">
+                <div class="twin-canvas-wrapper">
+                    <div id="twin-canvas"></div>
+                    <div class="twin-overlay">
+                        <div class="twin-info">
+                            <h4>场景信息</h4>
+                            <p>码头泊位: <span id="berth-count">8</span> 个</p>
+                            <p>起重机: <span id="crane-count">24</span> 台</p>
+                            <p>集装箱: <span id="container-count">1580</span> 个</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="twin-sidebar">
+                    <h3>设备列表</h3>
+                    <div class="equipment-list" id="equipment-list">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 碳排管理模块 -->
+        <section id="carbon-module" class="module">
+            <div class="module-header">
+                <h1>碳排放管理</h1>
+                <div class="carbon-period">
+                    <button class="filter-btn active" data-period="month">本月</button>
+                    <button class="filter-btn" data-period="quarter">本季度</button>
+                    <button class="filter-btn" data-period="year">本年</button>
+                </div>
+            </div>
+
+            <!-- 碳排放总览 -->
+            <div class="carbon-overview">
+                <div class="carbon-card primary">
+                    <h3>本月碳排放总量</h3>
+                    <div class="carbon-value">
+                        <span class="value" id="total-carbon">0</span>
+                        <span class="unit">吨CO₂</span>
+                    </div>
+                    <div class="carbon-target">
+                        目标: 8500吨 | 剩余: <span id="carbon-remaining">0</span>吨
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="carbon-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="carbon-card">
+                    <h3>碳减排成果</h3>
+                    <div class="carbon-value">
+                        <span class="value" id="carbon-reduction">0</span>
+                        <span class="unit">吨CO₂</span>
+                    </div>
+                    <div class="carbon-change">相比去年同期 ↓ 15.8%</div>
+                </div>
+                <div class="carbon-card">
+                    <h3>碳中和进度</h3>
+                    <div class="carbon-value">
+                        <span class="value" id="carbon-neutral">0</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="carbon-target">2030年目标: 100%</div>
+                </div>
+            </div>
+
+            <!-- 碳排放图表 -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>排放源分布</h3>
+                    <canvas id="carbon-source-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>历史排放趋势</h3>
+                    <canvas id="carbon-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- 减排措施 -->
+            <div class="measures-grid">
+                <h3>减排措施</h3>
+                <div class="measure-item">
+                    <div class="measure-icon">⚡</div>
+                    <div class="measure-content">
+                        <h4>岸电系统</h4>
+                        <p>覆盖率: 85% | 年减排: 1,200吨</p>
+                        <div class="measure-status active">运行中</div>
+                    </div>
+                </div>
+                <div class="measure-item">
+                    <div class="measure-icon">🔋</div>
+                    <div class="measure-content">
+                        <h4>电动设备</h4>
+                        <p>电动吊车: 18台 | 年减排: 800吨</p>
+                        <div class="measure-status active">运行中</div>
+                    </div>
+                </div>
+                <div class="measure-item">
+                    <div class="measure-icon">☀️</div>
+                    <div class="measure-content">
+                        <h4>光伏发电</h4>
+                        <p>装机容量: 5MW | 年减排: 2,500吨</p>
+                        <div class="measure-status active">运行中</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 应急指挥模块 -->
+        <section id="emergency-module" class="module">
+            <div class="module-header">
+                <h1>应急指挥中心</h1>
+                <div class="emergency-status">
+                    <span class="status-badge normal">当前状态: 正常</span>
+                </div>
+            </div>
+
+            <!-- 告警列表 -->
+            <div class="alert-panel">
+                <h3>实时告警</h3>
+                <div class="alert-list" id="alert-list">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+
+            <div class="emergency-grid">
+                <!-- 应急预案 -->
+                <div class="emergency-card">
+                    <h3>应急预案</h3>
+                    <div class="plan-list">
+                        <div class="plan-item">
+                            <div class="plan-icon">🔥</div>
+                            <div class="plan-content">
+                                <h4>火灾应急预案</h4>
+                                <p>最后演练: 2025-11-20</p>
+                                <button class="plan-btn">查看详情</button>
+                            </div>
+                        </div>
+                        <div class="plan-item">
+                            <div class="plan-icon">🌊</div>
+                            <div class="plan-content">
+                                <h4>台风应急预案</h4>
+                                <p>最后演练: 2025-10-15</p>
+                                <button class="plan-btn">查看详情</button>
+                            </div>
+                        </div>
+                        <div class="plan-item">
+                            <div class="plan-icon">⚠️</div>
+                            <div class="plan-content">
+                                <h4>危化品泄漏预案</h4>
+                                <p>最后演练: 2025-12-05</p>
+                                <button class="plan-btn">查看详情</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 资源调度 -->
+                <div class="emergency-card">
+                    <h3>应急资源</h3>
+                    <div class="resource-list">
+                        <div class="resource-item">
+                            <span class="resource-name">消防车辆</span>
+                            <span class="resource-value">8台 / 8台</span>
+                            <div class="resource-bar">
+                                <div class="resource-fill" style="width: 100%; background: #43e97b;"></div>
+                            </div>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-name">应急人员</span>
+                            <span class="resource-value">120人 / 120人</span>
+                            <div class="resource-bar">
+                                <div class="resource-fill" style="width: 100%; background: #43e97b;"></div>
+                            </div>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-name">医疗设备</span>
+                            <span class="resource-value">15套 / 18套</span>
+                            <div class="resource-bar">
+                                <div class="resource-fill" style="width: 83%; background: #feca57;"></div>
+                            </div>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-name">应急物资</span>
+                            <span class="resource-value">充足</span>
+                            <div class="resource-bar">
+                                <div class="resource-fill" style="width: 95%; background: #43e97b;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
